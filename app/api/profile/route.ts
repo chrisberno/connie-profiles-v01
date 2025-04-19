@@ -28,11 +28,18 @@ export async function GET(request: Request) {
   const data = await response.json();
 
   if (response.ok && data.profile) {
+    // Map "Profile Image" to "avatar"
+    if (data.profile['Profile Image']) {
+      data.profile.avatar = data.profile['Profile Image'];
+      data.profile = Object.fromEntries(
+        Object.entries(data.profile).filter(([key]) => key !== 'Profile Image')
+      );
+    }
+    // Sanitize the avatar field
     if (!data.profile.avatar || data.profile.avatar === 'https://default-avatar.png/' || data.profile.avatar === '') {
       data.profile.avatar = undefined;
     }
     return NextResponse.json({ profile: data.profile });
-  } else {
-    return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
   }
+  return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
 }
