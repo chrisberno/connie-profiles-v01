@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useDebouncedCallback } from 'use-debounce';
 import {
@@ -31,7 +31,7 @@ interface Profile {
   family_details?: string;
 }
 
-export default function SearchDirectory() {
+function SearchDirectoryContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -195,5 +195,14 @@ export default function SearchDirectory() {
         </Button>
       </div>
     </div>
+  );
+}
+
+// Main component that wraps the content in Suspense
+export default function SearchDirectory() {
+  return (
+    <Suspense fallback={<div>Loading directory...</div>}>
+      <SearchDirectoryContent />
+    </Suspense>
   );
 }
