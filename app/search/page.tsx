@@ -21,6 +21,9 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 
+// Disable prerendering for this page            
+export const dynamic = 'force-dynamic';
+
 interface Profile {
   id: number;
   phone: string;
@@ -187,7 +190,7 @@ function SearchDirectoryContent() {
                       <DialogTitle>{`${profile.firstname} ${profile.lastname}`}</DialogTitle>
                     </DialogHeader>
                     <div className="space-y-4">
-                      {console.log('Profile Image for', profile.firstname, profile['Profile Image'])}
+                      {/* Debugging log removed */}
                       <img
                         src={profile['Profile Image'] || '/default-avatar.png'} // Fix field name
                         alt={`${profile.firstname} ${profile.lastname}`} // Fix alt text
