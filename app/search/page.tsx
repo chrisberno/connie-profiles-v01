@@ -22,13 +22,25 @@ import {
 } from '@/components/ui/dialog';
 
 interface Profile {
+  id: number;
   phone: string;
   firstname: string;
   lastname: string;
   email: string;
-  avatar?: string;
-  program_1?: string;
-  family_details?: string;
+  address: string | null;
+  messenger_id: string | null;
+  'Profile Image': string | null; // Match the API field name
+  DOB: string | null;
+  program_1: string | null;
+  program_2: string | null;
+  program_3: string | null;
+  language: string | null;
+  Location: string | null;
+  pcp: string | null;
+  pcp_contact: string | null;
+  pcp_affiliation: string | null;
+  primary_caregiver: string | null;
+  primary_caregiver_phone: string | null;
 }
 
 function SearchDirectoryContent() {
@@ -42,9 +54,10 @@ function SearchDirectoryContent() {
   const [pageSize] = useState(10);
   const [lastNameFilter, setLastNameFilter] = useState(searchParams.get('lastName') || '');
   const [phoneNumberFilter, setPhoneNumberFilter] = useState(searchParams.get('phoneNumber') || '');
-  const [sortBy, setSortBy] = useState(searchParams.get('sortBy') || 'lastName');
+  const [sortBy, setSortBy] = useState(searchParams.get('sortBy') || 'lastname');
   const [sortOrder, setSortOrder] = useState(searchParams.get('sortOrder') || 'asc');
   const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
+  const [error, setError] = useState<string | null>(null); // Added error state
 
   // Debounced search handler
   const handleSearch = useDebouncedCallback(() => {
@@ -62,19 +75,28 @@ function SearchDirectoryContent() {
   // Fetch profiles when params change
   useEffect(() => {
     const fetchProfiles = async () => {
-      const params = new URLSearchParams({
-        page: page.toString(),
-        pageSize: pageSize.toString(),
-        lastName: lastNameFilter,
-        phoneNumber: phoneNumberFilter,
-        sortBy,
-        sortOrder,
-      });
-      const response = await fetch(`/api/all-profiles?${params.toString()}`);
-      const data = await response.json();
-      if (response.ok) {
-        setProfiles(data.profiles);
-        setTotal(data.total);
+      try {
+        const params = new URLSearchParams({
+          page: page.toString(),
+          pageSize: pageSize.toString(),
+          lastName: lastNameFilter,
+          phoneNumber: phoneNumberFilter,
+          sortBy,
+          sortOrder,
+        });
+        const response = await fetch(`/api/all-profiles?${params.toString()}`);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        setProfiles(data.profiles || []);
+        setTotal(data.total || 0);
+        setError(null);
+      } catch (error) {
+        console.error('Error fetching profiles:', error);
+        setError('Failed to load profiles. Please try again later.');
+        setProfiles([]);
+        setTotal(0);
       }
     };
     fetchProfiles();
@@ -107,6 +129,13 @@ function SearchDirectoryContent() {
   return (
     <div className="container mx-auto p-6">
       <h1 className="text-3xl font-bold mb-6">Search Directory</h1>
+
+      {/* Error Message */}
+      {error && (
+        <div className="text-red-500 mb-4">
+          {error}
+        </div>
+      )}
 
       {/* Filters */}
       <div className="flex gap-4 mb-6">
@@ -141,7 +170,7 @@ function SearchDirectoryContent() {
         </TableHeader>
         <TableBody>
           {profiles.map((profile) => (
-            <TableRow key={profile.phone}>
+            <TableRow key={profile.id}> {/* Changed key to profile.id */}
               <TableCell>{profile.firstname}</TableCell>
               <TableCell>{profile.lastname}</TableCell>
               <TableCell>{profile.phone}</TableCell>
@@ -158,15 +187,18 @@ function SearchDirectoryContent() {
                       <DialogTitle>{`${profile.firstname} ${profile.lastname}`}</DialogTitle>
                     </DialogHeader>
                     <div className="space-y-4">
+                      {console.log('Profile Image for', profile.firstname, profile['Profile Image'])}
                       <img
-                        src={profile.avatar ? profile.avatar : '/default-avatar.png'}
-                        alt={profile.firstname}
+                        src={profile['Profile Image'] || '/default-avatar.png'} // Fix field name
+                        alt={`${profile.firstname} ${profile.lastname}`} // Fix alt text
                         className="w-[120px] h-[120px] rounded-full mx-auto"
                       />
                       <p><strong>Phone:</strong> {profile.phone}</p>
                       <p><strong>Email:</strong> {profile.email}</p>
-                      <p><strong>Program:</strong> {profile.program_1 || 'N/A'}</p>
-                      <p><strong>Family Details:</strong> {profile.family_details || 'N/A'}</p>
+                      <p><strong>Programs:</strong> {profile.program_1 || 'N/A'}, {profile.program_2 || 'N/A'}, {profile.program_3 || 'N/A'}</p>
+                      <p><strong>Language:</strong> {profile.language || 'N/A'}</p>
+                      <p><strong>Location:</strong> {profile.Location || 'N/A'}</p>
+                      <p><strong>Primary Caregiver:</strong> {profile.primary_caregiver || 'N/A'} ({profile.primary_caregiver_phone || 'N/A'})</p>
                     </div>
                   </DialogContent>
                 </Dialog>
