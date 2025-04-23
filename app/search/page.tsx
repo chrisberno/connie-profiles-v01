@@ -21,7 +21,6 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 
-// Disable prerendering for this page            
 export const dynamic = 'force-dynamic';
 
 interface Profile {
@@ -32,7 +31,7 @@ interface Profile {
   email: string;
   address: string | null;
   messenger_id: string | null;
-  'Profile Image': string | null; // Match the API field name
+  'Profile Image': string | null;
   DOB: string | null;
   program_1: string | null;
   program_2: string | null;
@@ -50,40 +49,33 @@ function SearchDirectoryContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  // State for pagination, filters, and sorting
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(parseInt(searchParams.get('page') || '1'));
   const [pageSize] = useState(10);
-  const [lastNameFilter, setLastNameFilter] = useState(searchParams.get('lastName') || '');
-  const [phoneNumberFilter, setPhoneNumberFilter] = useState(searchParams.get('phoneNumber') || '');
+  const [searchFilter, setSearchFilter] = useState(searchParams.get('search') || '');
   const [sortBy, setSortBy] = useState(searchParams.get('sortBy') || 'lastname');
   const [sortOrder, setSortOrder] = useState(searchParams.get('sortOrder') || 'asc');
   const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
-  const [error, setError] = useState<string | null>(null); // Added error state
+  const [error, setError] = useState<string | null>(null);
 
-  // Debounced search handler
   const handleSearch = useDebouncedCallback(() => {
     const params = new URLSearchParams(searchParams);
-    params.set('page', '1'); // Reset to page 1 on filter change
-    if (lastNameFilter) params.set('lastName', lastNameFilter);
-    else params.delete('lastName');
-    if (phoneNumberFilter) params.set('phoneNumber', phoneNumberFilter);
-    else params.delete('phoneNumber');
+    params.set('page', '1');
+    if (searchFilter) params.set('search', searchFilter);
+    else params.delete('search');
     params.set('sortBy', sortBy);
     params.set('sortOrder', sortOrder);
     router.push(`/search?${params.toString()}`);
   }, 300);
 
-  // Fetch profiles when params change
   useEffect(() => {
     const fetchProfiles = async () => {
       try {
         const params = new URLSearchParams({
           page: page.toString(),
           pageSize: pageSize.toString(),
-          lastName: lastNameFilter,
-          phoneNumber: phoneNumberFilter,
+          search: searchFilter,
           sortBy,
           sortOrder,
         });
@@ -103,16 +95,8 @@ function SearchDirectoryContent() {
       }
     };
     fetchProfiles();
-  }, [page, pageSize, lastNameFilter, phoneNumberFilter, sortBy, sortOrder]);
+  }, [page, pageSize, searchFilter, sortBy, sortOrder]);
 
-  // Update filters and trigger search
-  const updateFilter = (key: string, value: string) => {
-    if (key === 'lastName') setLastNameFilter(value);
-    if (key === 'phoneNumber') setPhoneNumberFilter(value);
-    handleSearch();
-  };
-
-  // Handle sorting
   const handleSort = (column: string) => {
     const newSortOrder = sortBy === column && sortOrder === 'asc' ? 'desc' : 'asc';
     setSortBy(column);
@@ -120,7 +104,6 @@ function SearchDirectoryContent() {
     handleSearch();
   };
 
-  // Pagination controls
   const totalPages = Math.ceil(total / pageSize);
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
@@ -130,101 +113,139 @@ function SearchDirectoryContent() {
   };
 
   return (
-    <div className="container mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-6">Search Directory</h1>
+    <div className="container mx-auto px-4 py-6">
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">
+            Search Directory
+          </h1>
+          <p className="mt-1 text-sm text-gray-500">
+            Browse and manage client profiles
+          </p>
+        </div>
+        <Button
+          className="bg-indigo-600 text-white hover:bg-indigo-700"
+          onClick={() => router.push('/add-client')}
+        >
+          + Add Client
+        </Button>
+      </div>
 
-      {/* Error Message */}
       {error && (
-        <div className="text-red-500 mb-4">
+        <div className="text-red-600 mb-6 font-medium bg-red-50 p-3 rounded-md">
           {error}
         </div>
       )}
 
-      {/* Filters */}
-      <div className="flex gap-4 mb-6">
+      <div className="relative w-full max-w-sm mb-6">
+        <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+          <span className="text-gray-500">🔍</span>
+        </div>
         <Input
-          placeholder="Filter by Last Name"
-          value={lastNameFilter}
-          onChange={(e) => updateFilter('lastName', e.target.value)}
-          className="max-w-xs"
-        />
-        <Input
-          placeholder="Filter by Phone Number"
-          value={phoneNumberFilter}
-          onChange={(e) => updateFilter('phoneNumber', e.target.value)}
-          className="max-w-xs"
+          placeholder="Search by name or phone number..."
+          value={searchFilter}
+          onChange={(e) => {
+            setSearchFilter(e.target.value);
+            handleSearch();
+          }}
+          className="pl-10 w-full"
         />
       </div>
 
-      {/* Profiles Table */}
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead onClick={() => handleSort('firstname')} className="cursor-pointer">
-              First Name {sortBy === 'firstname' && (sortOrder === 'asc' ? '↑' : '↓')}
-            </TableHead>
-            <TableHead onClick={() => handleSort('lastname')} className="cursor-pointer">
-              Last Name {sortBy === 'lastname' && (sortOrder === 'asc' ? '↑' : '↓')}
-            </TableHead>
-            <TableHead>Phone Number</TableHead>
-            <TableHead>Email</TableHead>
-            <TableHead>Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {profiles.map((profile) => (
-            <TableRow key={profile.id}> {/* Changed key to profile.id */}
-              <TableCell>{profile.firstname}</TableCell>
-              <TableCell>{profile.lastname}</TableCell>
-              <TableCell>{profile.phone}</TableCell>
-              <TableCell>{profile.email}</TableCell>
-              <TableCell>
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button variant="outline" onClick={() => setSelectedProfile(profile)}>
-                      View Profile
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>{`${profile.firstname} ${profile.lastname}`}</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                      {/* Debugging log removed */}
-                      <img
-                        src={profile['Profile Image'] || '/default-avatar.png'} // Fix field name
-                        alt={`${profile.firstname} ${profile.lastname}`} // Fix alt text
-                        className="w-[120px] h-[120px] rounded-full mx-auto"
-                      />
-                      <p><strong>Phone:</strong> {profile.phone}</p>
-                      <p><strong>Email:</strong> {profile.email}</p>
-                      <p><strong>Programs:</strong> {profile.program_1 || 'N/A'}, {profile.program_2 || 'N/A'}, {profile.program_3 || 'N/A'}</p>
-                      <p><strong>Language:</strong> {profile.language || 'N/A'}</p>
-                      <p><strong>Location:</strong> {profile.Location || 'N/A'}</p>
-                      <p><strong>Primary Caregiver:</strong> {profile.primary_caregiver || 'N/A'} ({profile.primary_caregiver_phone || 'N/A'})</p>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              </TableCell>
+      <div className="bg-white rounded-lg shadow overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <>{/* Using fragment to avoid whitespace */}
+                <TableHead onClick={() => handleSort('firstname')} className="cursor-pointer">
+                  First Name {sortBy === 'firstname' && (sortOrder === 'asc' ? '↑' : '↓')}
+                </TableHead>
+                <TableHead onClick={() => handleSort('lastname')} className="cursor-pointer">
+                  Last Name {sortBy === 'lastname' && (sortOrder === 'asc' ? '↑' : '↓')}
+                </TableHead>
+                <TableHead>Phone Number</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead className="w-[72px]"></TableHead>
+                <TableHead>Actions</TableHead>
+              </>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHeader>
+          <TableBody>
+            {profiles.map((profile) => (
+              <TableRow key={profile.id}>
+                <>{/* Using fragment to avoid whitespace */}
+                  <TableCell>{profile.firstname}</TableCell>
+                  <TableCell>{profile.lastname}</TableCell>
+                  <TableCell>{profile.phone}</TableCell>
+                  <TableCell>{profile.email}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center justify-center">
+                      <div className="relative w-8 h-8">
+                        <img
+                          src={profile['Profile Image'] || '/default-avatar.png'}
+                          alt={`${profile.firstname} ${profile.lastname}`}
+                          className="w-full h-full rounded-full object-cover"
+                        />
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="border-indigo-600 text-indigo-600 hover:bg-indigo-600 hover:text-white"
+                          onClick={() => {
+                            setSelectedProfile(profile);
+                          }}
+                        >
+                          View Profile
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-md">
+                        <DialogHeader>
+                          <DialogTitle>{`${profile.firstname} ${profile.lastname}`}</DialogTitle>
+                        </DialogHeader>
+                        <div className="flex flex-col items-center space-y-4 pt-4">
+                          <img
+                            src={profile['Profile Image'] || '/default-avatar.png'}
+                            alt={`${profile.firstname} ${profile.lastname}`}
+                            className="w-[120px] h-[120px] rounded-full object-cover"
+                          />
+                          <div className="text-center space-y-2">
+                            <p><strong>Phone:</strong> {profile.phone}</p>
+                            <p><strong>Email:</strong> {profile.email}</p>
+                            <p><strong>Programs:</strong> {profile.program_1 || 'N/A'}, {profile.program_2 || 'N/A'}, {profile.program_3 || 'N/A'}</p>
+                            <p><strong>Language:</strong> {profile.language || 'N/A'}</p>
+                            <p><strong>Location:</strong> {profile.Location || 'N/A'}</p>
+                            <p><strong>Primary Caregiver:</strong> {profile.primary_caregiver || 'N/A'} ({profile.primary_caregiver_phone || 'N/A'})</p>
+                          </div>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  </TableCell>
+                </>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
 
-      {/* Pagination */}
       <div className="flex justify-between items-center mt-6">
         <Button
           onClick={() => handlePageChange(page - 1)}
           disabled={page === 1}
+          className="border border-gray-300 text-gray-700 hover:bg-gray-100"
         >
           Previous
         </Button>
-        <span>
+        <span className="text-gray-600">
           Page {page} of {totalPages}
         </span>
         <Button
           onClick={() => handlePageChange(page + 1)}
           disabled={page === totalPages}
+          className="border border-gray-300 text-gray-700 hover:bg-gray-100"
         >
           Next
         </Button>
@@ -233,7 +254,6 @@ function SearchDirectoryContent() {
   );
 }
 
-// Main component that wraps the content in Suspense
 export default function SearchDirectory() {
   return (
     <Suspense fallback={<div>Loading directory...</div>}>
