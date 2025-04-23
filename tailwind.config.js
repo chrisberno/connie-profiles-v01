@@ -29,5 +29,6 @@ module.exports = {
       },
     },
   },
-  plugins: [],
+  safelist: ['rounded-md', 'shadow-sm', 'border-gray-200', 'bg-white', 'bg-gray-50', 'hover:bg-gray-100'],
+  plugins: [require('tailwindcss-animate')],
 };

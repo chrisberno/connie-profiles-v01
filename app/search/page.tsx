@@ -113,18 +113,18 @@ function SearchDirectoryContent() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-6">
+    <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8 bg-white min-h-screen">
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">
+          <h1 className="text-3xl font-bold text-text-primary">
             Search Directory
           </h1>
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-text-secondary">
             Browse and manage client profiles
           </p>
         </div>
         <Button
-          className="bg-indigo-600 text-white hover:bg-indigo-700"
+          className="bg-primary text-white hover:bg-primary-dark transition-colors duration-200"
           onClick={() => router.push('/add-client')}
         >
           + Add Client
@@ -137,9 +137,10 @@ function SearchDirectoryContent() {
         </div>
       )}
 
-      <div className="relative w-full max-w-sm mb-6">
+      <div className="relative max-w-sm mb-6">
         <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-          <span className="text-gray-500">🔍</span>
+          {/* Simple magnifying glass icon */}
+          <span className="text-text-secondary">🔍</span>
         </div>
         <Input
           placeholder="Search by name or phone number..."
@@ -148,83 +149,93 @@ function SearchDirectoryContent() {
             setSearchFilter(e.target.value);
             handleSearch();
           }}
-          className="pl-10 w-full"
+          className="pl-10 max-w-sm border-gray-300 focus:ring-primary focus:border-primary rounded-md"
         />
       </div>
 
-      <div className="bg-white rounded-lg shadow overflow-x-auto">
-        <Table>
+      <div className="bg-white rounded-lg shadow-sm">
+        <Table className="border-separate border-spacing-y-2 table-fixed custom-table">
           <TableHeader>
-            <TableRow>
-              <>{/* Using fragment to avoid whitespace */}
-                <TableHead onClick={() => handleSort('firstname')} className="cursor-pointer">
-                  First Name {sortBy === 'firstname' && (sortOrder === 'asc' ? '↑' : '↓')}
-                </TableHead>
-                <TableHead onClick={() => handleSort('lastname')} className="cursor-pointer">
-                  Last Name {sortBy === 'lastname' && (sortOrder === 'asc' ? '↑' : '↓')}
-                </TableHead>
-                <TableHead>Phone Number</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead className="w-[72px]"></TableHead>
-                <TableHead>Actions</TableHead>
-              </>
+            <TableRow className="bg-gray-50 border-b border-gray-200">
+              <TableHead
+                onClick={() => handleSort('firstname')}
+                className="cursor-pointer hover:bg-gray-100 transition-colors duration-200 font-medium text-text-primary py-3 rounded-t-md"
+              >
+                First Name {sortBy === 'firstname' && (sortOrder === 'asc' ? '↑' : '↓')}
+              </TableHead>
+              <TableHead
+                onClick={() => handleSort('lastname')}
+                className="cursor-pointer hover:bg-gray-100 transition-colors duration-200 font-medium text-text-primary py-3"
+              >
+                Last Name {sortBy === 'lastname' && (sortOrder === 'asc' ? '↑' : '↓')}
+              </TableHead>
+              <TableHead className="font-medium text-text-primary py-3">Phone Number</TableHead>
+              <TableHead className="font-medium text-text-primary py-3">Email</TableHead>
+              <TableHead className="w-[72px]"></TableHead>
+              <TableHead className="font-medium text-text-primary py-3 rounded-t-md">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {profiles.map((profile) => (
-              <TableRow key={profile.id}>
-                <>{/* Using fragment to avoid whitespace */}
-                  <TableCell>{profile.firstname}</TableCell>
-                  <TableCell>{profile.lastname}</TableCell>
-                  <TableCell>{profile.phone}</TableCell>
-                  <TableCell>{profile.email}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center justify-center">
-                      <div className="relative w-8 h-8">
+            {profiles.map((profile, index) => (
+              <TableRow
+                key={profile.id}
+                className={`${
+                  index % 2 === 0 ? 'bg-white' : 'bg-gray-50'
+                } hover:bg-gray-100 transition-colors duration-200 rounded-md shadow-sm border border-gray-200 overflow-hidden`}
+              >
+                <TableCell className="text-text-primary py-3 rounded-l-md">{profile.firstname}</TableCell>
+                <TableCell className="text-text-primary py-3">{profile.lastname}</TableCell>
+                <TableCell className="text-text-secondary py-3">{profile.phone}</TableCell>
+                <TableCell className="text-text-secondary py-3">{profile.email}</TableCell>
+                <TableCell className="py-3 px-0 w-[72px]">
+                  <div className="flex items-center justify-center">
+                    <div className="relative w-10 h-10">
+                      <img
+                        src={profile['Profile Image'] || '/default-avatar.png'}
+                        alt={`${profile.firstname} ${profile.lastname}`}
+                        className="w-full h-full rounded-full object-cover border border-gray-200"
+                      />
+                    </div>
+                  </div>
+                </TableCell>
+                <TableCell className="py-3 rounded-r-md">
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="border-primary text-primary hover:bg-primary hover:text-white transition-colors duration-200 rounded-md"
+                        onClick={() => {
+                          console.log('Profile Image for', profile.firstname, profile['Profile Image']);
+                          setSelectedProfile(profile);
+                        }}
+                      >
+                        View Profile
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-md bg-white border border-gray-200 rounded-lg p-6 animate-fade-in">
+                      <DialogHeader>
+                        <DialogTitle className="text-xl font-semibold text-text-primary">
+                          {`${profile.firstname} ${profile.lastname}`}
+                        </DialogTitle>
+                      </DialogHeader>
+                      <div className="flex flex-col items-center space-y-3 pt-3">
                         <img
                           src={profile['Profile Image'] || '/default-avatar.png'}
                           alt={`${profile.firstname} ${profile.lastname}`}
-                          className="w-full h-full rounded-full object-cover"
+                          className="w-[100px] h-[100px] rounded-full object-cover border-2 border-primary-light"
                         />
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className="border-indigo-600 text-indigo-600 hover:bg-indigo-600 hover:text-white"
-                          onClick={() => {
-                            setSelectedProfile(profile);
-                          }}
-                        >
-                          View Profile
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="sm:max-w-md">
-                        <DialogHeader>
-                          <DialogTitle>{`${profile.firstname} ${profile.lastname}`}</DialogTitle>
-                        </DialogHeader>
-                        <div className="flex flex-col items-center space-y-4 pt-4">
-                          <img
-                            src={profile['Profile Image'] || '/default-avatar.png'}
-                            alt={`${profile.firstname} ${profile.lastname}`}
-                            className="w-[120px] h-[120px] rounded-full object-cover"
-                          />
-                          <div className="text-center space-y-2">
-                            <p><strong>Phone:</strong> {profile.phone}</p>
-                            <p><strong>Email:</strong> {profile.email}</p>
-                            <p><strong>Programs:</strong> {profile.program_1 || 'N/A'}, {profile.program_2 || 'N/A'}, {profile.program_3 || 'N/A'}</p>
-                            <p><strong>Language:</strong> {profile.language || 'N/A'}</p>
-                            <p><strong>Location:</strong> {profile.Location || 'N/A'}</p>
-                            <p><strong>Primary Caregiver:</strong> {profile.primary_caregiver || 'N/A'} ({profile.primary_caregiver_phone || 'N/A'})</p>
-                          </div>
+                        <div className="text-center space-y-2 text-text-primary">
+                          <p><strong>Phone:</strong> {profile.phone}</p>
+                          <p><strong>Email:</strong> {profile.email}</p>
+                          <p><strong>Programs:</strong> {profile.program_1 || 'N/A'}, {profile.program_2 || 'N/A'}, {profile.program_3 || 'N/A'}</p>
+                          <p><strong>Language:</strong> {profile.language || 'N/A'}</p>
+                          <p><strong>Location:</strong> {profile.Location || 'N/A'}</p>
+                          <p><strong>Primary Caregiver:</strong> {profile.primary_caregiver || 'N/A'} ({profile.primary_caregiver_phone || 'N/A'})</p>
                         </div>
-                      </DialogContent>
-                    </Dialog>
-                  </TableCell>
-                </>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -235,17 +246,17 @@ function SearchDirectoryContent() {
         <Button
           onClick={() => handlePageChange(page - 1)}
           disabled={page === 1}
-          className="border border-gray-300 text-gray-700 hover:bg-gray-100"
+          className="border border-gray-300 text-text-primary hover:bg-gray-100 transition-colors duration-200 rounded-md disabled:bg-gray-100 disabled:text-gray-400"
         >
           Previous
         </Button>
-        <span className="text-gray-600">
+        <span className="text-text-secondary text-sm">
           Page {page} of {totalPages}
         </span>
         <Button
           onClick={() => handlePageChange(page + 1)}
           disabled={page === totalPages}
-          className="border border-gray-300 text-gray-700 hover:bg-gray-100"
+          className="border border-gray-300 text-text-primary hover:bg-gray-100 transition-colors duration-200 rounded-md disabled:bg-gray-100 disabled:text-gray-400"
         >
           Next
         </Button>
