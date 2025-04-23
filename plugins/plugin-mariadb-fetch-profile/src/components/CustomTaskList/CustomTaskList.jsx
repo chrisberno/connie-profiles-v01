@@ -16,7 +16,7 @@ const CustomTaskList = () => {
     <Theme.Provider theme="default">
       <Alert onDismiss={dismiss} variant="neutral">
         <Text>
-          This is a dismissible demo component.
+          This is a mariaDB_SQL Import Trial.
         </Text>
       </Alert>
     </Theme.Provider>
