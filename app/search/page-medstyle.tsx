@@ -51,17 +51,29 @@ function SearchDirectoryContent() {
 
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [total, setTotal] = useState(0);
-  const [page, setPage] = useState(parseInt(searchParams.get('page') || '1'));
+  const [page, setPage] = useState(
+    searchParams ? parseInt(searchParams.get('page') || '1') : 1
+  );
   const [pageSize] = useState(10);
-  const [lastNameFilter, setLastNameFilter] = useState(searchParams.get('lastName') || '');
-  const [phoneNumberFilter, setPhoneNumberFilter] = useState(searchParams.get('phoneNumber') || '');
-  const [sortBy, setSortBy] = useState(searchParams.get('sortBy') || 'lastname');
-  const [sortOrder, setSortOrder] = useState(searchParams.get('sortOrder') || 'asc');
+  const [lastNameFilter, setLastNameFilter] = useState(
+    searchParams ? (searchParams.get('lastName') || '') : ''
+  );
+  const [phoneNumberFilter, setPhoneNumberFilter] = useState(
+    searchParams ? (searchParams.get('phoneNumber') || '') : ''
+  );
+  const [sortBy, setSortBy] = useState(
+    searchParams ? (searchParams.get('sortBy') || 'lastname') : 'lastname'
+  );
+  const [sortOrder, setSortOrder] = useState(
+    searchParams ? (searchParams.get('sortOrder') || 'asc') : 'asc'
+  );
   const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const handleSearch = useDebouncedCallback(() => {
-    const params = new URLSearchParams(searchParams);
+    // Create a new URLSearchParams object, handling the case where searchParams might be null
+    const params = new URLSearchParams(searchParams?.toString() || '');
+    
     params.set('page', '1');
     if (lastNameFilter) params.set('lastName', lastNameFilter);
     else params.delete('lastName');
@@ -117,7 +129,7 @@ function SearchDirectoryContent() {
   const totalPages = Math.ceil(total / pageSize);
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
-    const params = new URLSearchParams(searchParams);
+    const params = new URLSearchParams(searchParams?.toString() || '');
     params.set('page', newPage.toString());
     router.push(`/search?${params.toString()}`);
   };
