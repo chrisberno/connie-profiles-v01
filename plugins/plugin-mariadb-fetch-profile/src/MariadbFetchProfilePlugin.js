@@ -31,19 +31,53 @@ export default class MariadbFetchProfilePlugin extends FlexPlugin {
 
   async fetchAndUpdateCrm(flex, manager, task, phoneNumber) {
     try {
+      // Use Twilio Functions SDK to make the request
+      // This approach avoids CORS issues by using the Twilio backend
       const functionUrl = 'https://mariadb-7343-test-1234-dev.twil.io/fetch-profile';
-      const response = await fetch(`${functionUrl}?From=${encodeURIComponent(phoneNumber)}`);
-      const data = await response.json();
-
-      console.log('Fetch profile response:', data);
-
-      manager.store.dispatch({
-        type: 'SET_CRM_CONTAINER_CONTENT',
-        payload: {
-          uri: data.url,
-          shouldReload: true
-        }
-      });
+      
+      // Option 1: Using Twilio's built-in Functions.fetch if available
+      if (typeof Twilio !== 'undefined' && Twilio.Functions && Twilio.Functions.fetch) {
+        const response = await Twilio.Functions.fetch(
+          functionUrl,
+          { From: phoneNumber },
+          { method: 'GET' }
+        );
+        
+        console.log('Fetch profile response:', response);
+        
+        manager.store.dispatch({
+          type: 'SET_CRM_CONTAINER_CONTENT',
+          payload: {
+            uri: response.url,
+            shouldReload: true
+          }
+        });
+      } 
+      // Option 2: Using fetch with mode: 'cors' and credentials
+      else {
+        const response = await fetch(
+          `${functionUrl}?From=${encodeURIComponent(phoneNumber)}`, 
+          {
+            method: 'GET',
+            mode: 'cors',
+            credentials: 'include',
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+        
+        const data = await response.json();
+        console.log('Fetch profile response:', data);
+        
+        manager.store.dispatch({
+          type: 'SET_CRM_CONTAINER_CONTENT',
+          payload: {
+            uri: data.url,
+            shouldReload: true
+          }
+        });
+      }
     } catch (error) {
       console.error('Error fetching profile:', error);
       manager.store.dispatch({
