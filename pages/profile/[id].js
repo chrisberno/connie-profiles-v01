@@ -20,7 +20,7 @@ export default function Profile({ profile }) {
 export async function getServerSideProps({ params }) {
   const { id } = params;
   // Fetch profile data from the database or API
-  const profile = await fetchProfileById(id); // Replace with your data fetching logic
+  const profile = await fetch(`https://connie-profiles-v01-3t7w5hahw-connie-direct.vercel.app/api/profile?id=${id}`);)
   if (!profile) {
     return { notFound: true }; // This causes a 404 if the profile isn't found
   }
