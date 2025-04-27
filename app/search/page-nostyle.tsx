@@ -53,23 +53,21 @@ function SearchDirectoryContent() {
   // State for pagination, filters, and sorting
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [total, setTotal] = useState(0);
-  const [page, setPage] = useState(parseInt(searchParams.get('page') || '1'));
+  const [page, setPage] = useState(parseInt(searchParams?.get('page') || '1'));
   const [pageSize] = useState(10);
-  const [lastNameFilter, setLastNameFilter] = useState(searchParams.get('lastName') || '');
-  const [phoneNumberFilter, setPhoneNumberFilter] = useState(searchParams.get('phoneNumber') || '');
-  const [sortBy, setSortBy] = useState(searchParams.get('sortBy') || 'lastname');
-  const [sortOrder, setSortOrder] = useState(searchParams.get('sortOrder') || 'asc');
+  const [lastNameFilter, setLastNameFilter] = useState(searchParams?.get('lastName') || '');
+  const [phoneNumberFilter, setPhoneNumberFilter] = useState(searchParams?.get('phoneNumber') || '');
+  const [sortBy, setSortBy] = useState(searchParams?.get('sortBy') || 'lastname');
+  const [sortOrder, setSortOrder] = useState(searchParams?.get('sortOrder') || 'asc');
   const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
   const [error, setError] = useState<string | null>(null); // Added error state
 
   // Debounced search handler
   const handleSearch = useDebouncedCallback(() => {
-    const params = new URLSearchParams(searchParams);
+    const params = new URLSearchParams();
     params.set('page', '1'); // Reset to page 1 on filter change
     if (lastNameFilter) params.set('lastName', lastNameFilter);
-    else params.delete('lastName');
     if (phoneNumberFilter) params.set('phoneNumber', phoneNumberFilter);
-    else params.delete('phoneNumber');
     params.set('sortBy', sortBy);
     params.set('sortOrder', sortOrder);
     router.push(`/search?${params.toString()}`);
@@ -124,7 +122,11 @@ function SearchDirectoryContent() {
   const totalPages = Math.ceil(total / pageSize);
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
-    const params = new URLSearchParams(searchParams);
+    const params = new URLSearchParams();
+    if (lastNameFilter) params.set('lastName', lastNameFilter);
+    if (phoneNumberFilter) params.set('phoneNumber', phoneNumberFilter);
+    params.set('sortBy', sortBy);
+    params.set('sortOrder', sortOrder);
     params.set('page', newPage.toString());
     router.push(`/search?${params.toString()}`);
   };

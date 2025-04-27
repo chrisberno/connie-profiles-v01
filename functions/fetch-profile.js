@@ -1,59 +1,48 @@
-exports.handler = async function(context, event, callback) {
-  const mysql = require('mysql2/promise');
-  
-  // Base URL for your Vercel app
-  const BASE_URL = 'https://connie-profiles-v01-4zuxqqz55-connie-direct.vercel.app';
-  
-  // Get the caller's phone number from the Studio event
-  const phoneNumber = event.From || '';
-  
-  // Validate phone number
-  if (!phoneNumber) {
-    return callback(null, {
-      found: false,
-      url: `${BASE_URL}/search`
-    });
-  }
+exports.handler = async (context, event, callback) => {
+  // Set CORS headers
+  const response = new Twilio.Response();
+  response.appendHeader('Access-Control-Allow-Origin', 'https://flex.twilio.com');
+  response.appendHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
+  response.appendHeader('Access-Control-Allow-Headers', 'Content-Type');
+  response.appendHeader('Content-Type', 'application/json');
 
-  // Configure MySQL connection
+  const BASE_URL = 'https://connie-profiles-v01.vercel.app';
+
+  const mysql = require('mysql2/promise');
   const connection = await mysql.createConnection({
     host: context.DB_HOST,
     user: context.DB_USER,
     password: context.DB_PASSWORD,
     database: context.DB_NAME,
-    port: context.DB_PORT || 3306
+    port: context.DB_PORT || 3306,
   });
 
   try {
-    // Query the profiles table for the phone number
+    const phoneNumber = event.From ? event.From.replace(/[^+\d]/g, '') : null;
+    console.log('Normalized phone number:', phoneNumber);
+    if (!phoneNumber) {
+      response.setBody({ found: false, url: `${BASE_URL}/search` });
+      return callback(null, response);
+    }
+
     const [rows] = await connection.execute(
-      'SELECT id FROM profiles WHERE phone = ?',
+      'SELECT * FROM profiles WHERE phone = ?',
       [phoneNumber]
     );
-
-    // Close the database connection
+    console.log('Database query result:', rows);
     await connection.end();
 
-    // Check if a profile was found
     if (rows.length > 0) {
       const profileId = rows[0].id;
-      return callback(null, {
-        found: true,
-        url: `${BASE_URL}/profile/${profileId}`
-      });
+      response.setBody({ found: true, url: `${BASE_URL}/profile/${profileId}` });
     } else {
-      return callback(null, {
-        found: false,
-        url: `${BASE_URL}/search`
-      });
+      response.setBody({ found: false, url: `${BASE_URL}/search` });
     }
+    return callback(null, response);
   } catch (error) {
     await connection.end();
-    console.error('Database error:', error);
-    return callback(null, {
-      found: false,
-      url: `${BASE_URL}/search`,
-      error: 'Failed to query database'
-    });
+    response.setBody({ error: error.message });
+    response.setStatusCode(500);
+    return callback(null, response);
   }
 };
