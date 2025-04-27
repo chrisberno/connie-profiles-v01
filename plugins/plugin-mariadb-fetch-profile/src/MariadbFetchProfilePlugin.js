@@ -14,38 +14,45 @@ export default class MariadbFetchProfilePlugin extends FlexPlugin {
         const phoneNumber = task.attributes.from || '';
         const normalizedPhoneNumber = phoneNumber.replace(/[^+\d]/g, '');
         if (normalizedPhoneNumber) {
-          this.fetchAndUpdateCrm(flex, task, normalizedPhoneNumber);
+          this.fetchAndUpdateCrm(flex, manager, task, normalizedPhoneNumber);
         } else {
           console.warn('No phone number found in task attributes:', task.attributes);
-          flex.CRMContainer.setContent('crm-container', {
-            uri: 'https://connie-profiles-v01.vercel.app/search',
-            shouldReload: true
+          manager.store.dispatch({
+            type: 'SET_CRM_CONTAINER_CONTENT',
+            payload: {
+              uri: 'https://connie-profiles-v01.vercel.app/search',
+              shouldReload: true
+            }
           });
         }
       }
     });
   }
 
-  async fetchAndUpdateCrm(flex, task, phoneNumber) {
+  async fetchAndUpdateCrm(flex, manager, task, phoneNumber) {
     try {
-      const functionUrl = 'https://mariadb-7343-test-1234-dev.twil.io/fetch-profile'; // Update with your actual Function URL
+      const functionUrl = 'https://mariadb-7343-test-1234-dev.twil.io/fetch-profile';
       const response = await fetch(`${functionUrl}?From=${encodeURIComponent(phoneNumber)}`);
       const data = await response.json();
 
       console.log('Fetch profile response:', data);
 
-      // Update the CRM container (right sidebar) with the URL
-      flex.CRMContainer.setContent('crm-container', {
-        uri: data.url,
-        shouldReload: true
+      manager.store.dispatch({
+        type: 'SET_CRM_CONTAINER_CONTENT',
+        payload: {
+          uri: data.url,
+          shouldReload: true
+        }
       });
     } catch (error) {
       console.error('Error fetching profile:', error);
-      flex.CRMContainer.setContent('crm-container', {
-        uri: 'https://connie-profiles-v01.vercel.app/search',
-        shouldReload: true
+      manager.store.dispatch({
+        type: 'SET_CRM_CONTAINER_CONTENT',
+        payload: {
+          uri: 'https://connie-profiles-v01.vercel.app/search',
+          shouldReload: true
+        }
       });
     }
   }
 }
-
