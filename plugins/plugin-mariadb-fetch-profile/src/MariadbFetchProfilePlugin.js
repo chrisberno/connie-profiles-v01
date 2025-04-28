@@ -31,70 +31,21 @@ export default class MariadbFetchProfilePlugin extends FlexPlugin {
 
   async fetchAndUpdateCrm(flex, manager, task, phoneNumber) {
     try {
-      // Use the new proxy endpoint
-      const proxyUrl = 'https://mariadb-7343-test-1234-dev.twil.io/profile-proxy';
-      
-      // Use Twilio's built-in client if available
-      if (typeof Twilio !== 'undefined' && Twilio.Functions && Twilio.Functions.fetch) {
-        console.log('Using Twilio.Functions.fetch with phone number:', phoneNumber);
-        
-        const response = await Twilio.Functions.fetch(
-          proxyUrl,
-          { From: phoneNumber },
-          { method: 'GET' }
-        );
-        
-        console.log('Proxy response via Twilio.Functions:', response);
-        
-        if (response && response.url) {
-          manager.store.dispatch({
-            type: 'SET_CRM_CONTAINER_CONTENT',
-            payload: {
-              uri: response.url,
-              shouldReload: true
-            }
-          });
-        } else {
-          throw new Error('Invalid response from proxy');
+      const functionUrl = 'https://mariadb-7343.twil.io/fetch-profile'; // Updated URL
+      const response = await fetch(`${functionUrl}?From=${encodeURIComponent(phoneNumber)}`);
+      const data = await response.json();
+
+      console.log('Fetch profile response:', data);
+
+      manager.store.dispatch({
+        type: 'SET_CRM_CONTAINER_CONTENT',
+        payload: {
+          uri: data.url,
+          shouldReload: true
         }
-      } 
-      // Fallback to regular fetch
-      else {
-        console.log('Using fetch API with phone number:', phoneNumber);
-        
-        // Add a timestamp to prevent caching
-        const timestamp = new Date().getTime();
-        const url = `${proxyUrl}?From=${encodeURIComponent(phoneNumber)}&_=${timestamp}`;
-        
-        const response = await fetch(url, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'Cache-Control': 'no-cache'
-          }
-        });
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        console.log('Proxy response via fetch:', data);
-        
-        if (data && data.url) {
-          manager.store.dispatch({
-            type: 'SET_CRM_CONTAINER_CONTENT',
-            payload: {
-              uri: data.url,
-              shouldReload: true
-            }
-          });
-        } else {
-          throw new Error('Invalid response from proxy');
-        }
-      }
+      });
     } catch (error) {
-      console.error('Error fetching profile via proxy:', error);
+      console.error('Error fetching profile:', error);
       manager.store.dispatch({
         type: 'SET_CRM_CONTAINER_CONTENT',
         payload: {
