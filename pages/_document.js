@@ -5,10 +5,7 @@ class MyDocument extends Document {
     return (
       <Html>
         <Head>
-          <meta
-            httpEquiv="Content-Security-Policy"
-            content="frame-ancestors 'self' https://flex.twilio.com"
-          />
+          {/* Remove the CSP meta tag since it's set via HTTP headers */}
         </Head>
         <body>
           <Main />
