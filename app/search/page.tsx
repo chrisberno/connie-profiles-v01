@@ -83,6 +83,7 @@ function SearchDirectoryContent() {
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
+        // This is safe - using response.json() instead of eval
         const data = await response.json();
         setProfiles(data.profiles || []);
         setTotal(data.total || 0);
