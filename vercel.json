@@ -5,7 +5,7 @@
       "headers": [
         {
           "key": "Content-Security-Policy",
-          "value": "frame-ancestors 'self' https://flex.twilio.com; script-src 'self' 'unsafe-eval'"
+          "value": "default-src 'self'; script-src 'self' 'unsafe-eval'; frame-ancestors 'self' https://flex.twilio.com;"
         }
       ]
     }
