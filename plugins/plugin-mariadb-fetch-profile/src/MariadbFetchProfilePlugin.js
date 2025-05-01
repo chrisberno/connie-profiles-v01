@@ -1,3 +1,5 @@
+//This is the original version of the Connie profiles plugin & is meant to stand alone as it does not integrate with the Enhanced CRMcontainer.
+// see line 41 below ..
 import { FlexPlugin } from '@twilio/flex-plugin';
 
 const PLUGIN_NAME = 'MariadbFetchProfilePlugin';
@@ -37,6 +39,7 @@ export default class MariadbFetchProfilePlugin extends FlexPlugin {
 
       console.log('Fetch profile response:', data);
 
+// Here the plugin overrides the CRM Container with task related URL ..
       manager.store.dispatch({
         type: 'SET_CRM_CONTAINER_CONTENT',
         payload: {

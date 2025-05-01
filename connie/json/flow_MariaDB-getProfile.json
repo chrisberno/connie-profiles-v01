@@ -1,0 +1,139 @@
+{
+  "description": "Connie Profile Lookup Flow",
+  "states": [
+    {
+      "name": "Trigger",
+      "type": "trigger",
+      "transitions": [
+        {
+          "event": "incomingMessage"
+        },
+        {
+          "next": "mariaDB_FetchProfile",
+          "event": "incomingCall"
+        },
+        {
+          "event": "incomingConversationMessage"
+        },
+        {
+          "event": "incomingRequest"
+        },
+        {
+          "event": "incomingParent"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "name": "mariaDB_FetchProfile",
+      "type": "run-function",
+      "transitions": [
+        {
+          "next": "set_variables_1",
+          "event": "success"
+        },
+        {
+          "next": "set_variables_2",
+          "event": "fail"
+        }
+      ],
+      "properties": {
+        "service_sid": "ZS2a1ed57f92531bb690192c83c530d642",
+        "environment_sid": "ZE39627fef577d44edac75e3ca50de366e",
+        "offset": {
+          "x": 90,
+          "y": 180
+        },
+        "function_sid": "ZHca34b02857e9dbc8e3bd68531b703887",
+        "parameters": [
+          {
+            "value": "{{trigger.call.From}}",
+            "key": "From"
+          }
+        ],
+        "url": "https://mariadb-7343.twil.io/fetch-profile"
+      }
+    },
+    {
+      "name": "set_variables_1",
+      "type": "set-variables",
+      "transitions": [
+        {
+          "next": "send_to_flex_2",
+          "event": "next"
+        }
+      ],
+      "properties": {
+        "variables": [
+          {
+            "type": "string",
+            "value": "{{widgets.mariaDB_FetchProfile.parsed.url}}",
+            "key": "crm_url"
+          }
+        ],
+        "offset": {
+          "x": -50,
+          "y": 410
+        }
+      }
+    },
+    {
+      "name": "set_variables_2",
+      "type": "set-variables",
+      "transitions": [
+        {
+          "next": "send_to_flex_2",
+          "event": "next"
+        }
+      ],
+      "properties": {
+        "variables": [
+          {
+            "type": "string",
+            "value": "https://connie-profiles-v01-4zuxqqz55-connie-direct.vercel.app/search",
+            "key": "crm_url"
+          }
+        ],
+        "offset": {
+          "x": 350,
+          "y": 400
+        }
+      }
+    },
+    {
+      "name": "send_to_flex_2",
+      "type": "send-to-flex",
+      "transitions": [
+        {
+          "event": "callComplete"
+        },
+        {
+          "event": "failedToEnqueue"
+        },
+        {
+          "event": "callFailure"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 190,
+          "y": 710
+        },
+        "workflow": "WW89a4f102acfada716a02139a3bf99511",
+        "channel": "TC9aeec80224566cc4a2d24dfdc7c4cbf8",
+        "attributes": "{\"crm_url\": \"{{flow.variables.crm_url}}\"}",
+        "priority": "0",
+        "timeout": "3600"
+      }
+    }
+  ],
+  "initial_state": "Trigger",
+  "flags": {
+    "allow_concurrent_calls": true
+  }
+}
