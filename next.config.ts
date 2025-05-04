@@ -25,7 +25,7 @@ const nextConfig: NextConfig = {
 
     const cspValue = isDevelopment
       ? "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.twilio.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://db.connie.technology:3000 localhost:* https://*.twilio.com; frame-ancestors 'self' https://flex.twilio.com"
-      : "default-src 'self'; script-src 'self' 'unsafe-inline' https://*.twilio.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://db.connie.technology:3000 https://*.twilio.com; frame-ancestors 'self' https://flex.twilio.com";
+      : "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.twilio.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://db.connie.technology:3000 https://*.twilio.com; frame-ancestors 'self' https://flex.twilio.com";
 
     return [
       {
