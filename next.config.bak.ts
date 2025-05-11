@@ -10,7 +10,7 @@ const nextConfig: NextConfig = {
     ];
   },
   
-  // Add headers configuration with production-focused CSP
+  // Updated headers configuration to allow embedding in Flex
   async headers() {
     return [
       {
@@ -18,11 +18,11 @@ const nextConfig: NextConfig = {
         headers: [
           {
             key: 'X-Frame-Options',
-            value: 'ALLOW-FROM https://flex.twilio.com'
+            value: 'ALLOWALL'
           },
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://db.connie.technology:3000; frame-ancestors 'self' https://flex.twilio.com *"
+            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://db.connie.technology:3000; frame-ancestors 'self' https://flex.twilio.com https://*.twilio.com *"
           }
         ]
       }
