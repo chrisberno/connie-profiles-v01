@@ -1,19 +1,16 @@
-import type { NextConfig } from 'next'
-
-const nextConfig: NextConfig = {
-  async rewrites() {
+module.exports = {
+  headers: async () => {
     return [
       {
-        source: '/api/:path*',
-        destination: 'http://db.connie.technology:3000/:path*',
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'Content-Security-Policy',
+            value:
+              "default-src 'self'; script-src 'self' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' http://db.connie.technology:3000; frame-ancestors 'self' https://flex.twilio.com;",
+          },
+        ],
       },
     ];
   },
-  
-  // Temporarily remove all CSP headers for testing
-  async headers() {
-    return [];
-  }
 };
-
-export default nextConfig;
