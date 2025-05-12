@@ -1,56 +1,30 @@
-import { withSentryConfig } from '@sentry/nextjs';
+import React from "react"
+import * as Flex from '@twilio/flex-ui';
+import { FlexPlugin } from "@twilio/flex-plugin"
 
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-  reactStrictMode: true,
-  swcMinify: true,
-  async headers() {
-    return [
-      {
-        source: '/:path*',
-        headers: [
-          {
-            key: 'X-Frame-Options',
-            value: 'ALLOWALL'
-          },
-          {
-            key: 'Content-Security-Policy',
-            value: 'frame-ancestors *'
-          }
-        ]
-      }
-    ];
+import CustomTaskList from "./components/CustomTaskList"
+
+const PLUGIN_NAME = "SamplePlugin"
+
+export default class SamplePlugin extends FlexPlugin {
+  constructor() {
+    super(PLUGIN_NAME)
   }
-};
 
-export default withSentryConfig(
-  nextConfig,
-  {
-    // For all available options, see:
-    // https://github.com/getsentry/sentry-webpack-plugin#options
-
-    // Suppresses source map uploading logs during build
-    silent: true,
-    org: "connie-plus",
-    project: "javascript-nextjs",
-  },
-  {
-    // For all available options, see:
-    // https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/
-
-    // Upload a larger set of source maps for prettier stack traces (increases build time)
-    widenClientFileUpload: true,
-
-    // Transpiles SDK to be compatible with IE11 (increases bundle size)
-    transpileClientSDK: true,
-
-    // Routes browser requests to Sentry through a Next.js rewrite to circumvent ad-blockers (increases server load)
-    tunnelRoute: "/monitoring",
-
-    // Hides source maps from generated client bundles
-    hideSourceMaps: true,
-
-    // Automatically tree-shake Sentry logger statements to reduce bundle size
-    disableLogger: true,
+  /**
+   * This code is run when your plugin is being started
+   * Use this to modify any UI components or attach to the actions framework
+   *
+   * @param flex { typeof import('@twilio/flex-ui') }
+   */
+  async init(flex: typeof Flex, manager: Flex.Manager): Promise<void> {
+    // Add a console log to verify the URL being used
+    console.log("CRM URL for task:", "https://connie-profiles-v01.vercel.app/simple-test");
+    
+    flex.CRMContainer.defaultProps.uriCallback = (task) => {
+      return task
+        ? "https://connie-profiles-v01.vercel.app/simple-test"
+        : "https://v1.connie.plus"
+    }
   }
-);
+}
