@@ -17,6 +17,7 @@ exports.handler = async (context, event, callback) => {
   console.log('DB_PASSWORD:', context.DB_PASSWORD);
   console.log('DB_PORT:', context.DB_PORT);
 
+  // Update the BASE_URL to use the production URL
   const BASE_URL = 'https://connie-profiles-v01.vercel.app';
 
   // Fallback to hardcoded values if environment variables are undefined

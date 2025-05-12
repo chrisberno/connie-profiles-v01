@@ -95,7 +95,7 @@
         "variables": [
           {
             "type": "string",
-            "value": "https://connie-profiles-v01-4zuxqqz55-connie-direct.vercel.app/search",
+            "value": "https://connie-profiles-v01.vercel.app/search",
             "key": "crm_url"
           }
         ],
