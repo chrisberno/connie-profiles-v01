@@ -1,13 +1,20 @@
-'use client'
+import React from 'react';
+import { useEffect, useState } from 'react';
 
-import React, { useEffect, useState } from 'react';
+// This tells Next.js not to pre-render this page
+export const dynamic = 'force-dynamic';
 
 export default function IframeTest() {
+  // Initialize state with null values
+  const [isClient, setIsClient] = useState(false);
   const [isInIframe, setIsInIframe] = useState<boolean | null>(null);
   const [currentTime, setCurrentTime] = useState<string>('');
 
+  // Only run this effect on the client side
   useEffect(() => {
-    // Only access window object in useEffect (client-side)
+    setIsClient(true);
+    
+    // Now it's safe to access window
     setIsInIframe(window.self !== window.top);
     setCurrentTime(new Date().toLocaleTimeString());
     
@@ -19,6 +26,17 @@ export default function IframeTest() {
     return () => clearInterval(timer);
   }, []);
 
+  // Server-side render a simple placeholder
+  if (!isClient) {
+    return (
+      <div style={{ padding: '20px' }}>
+        <h1>Iframe Test Page</h1>
+        <p>Loading...</p>
+      </div>
+    );
+  }
+
+  // Client-side render with full functionality
   return (
     <div style={{ padding: '20px' }}>
       <h1>Iframe Test Page</h1>
