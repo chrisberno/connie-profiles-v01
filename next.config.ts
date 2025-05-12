@@ -1,12 +1,18 @@
 import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
+  // Combined rewrites with API proxying and CORS headers
   async rewrites() {
     return [
       {
         source: '/api/:path*',
         destination: 'http://db.connie.technology:3000/:path*',
-      },
+        headers: [
+          { key: 'Access-Control-Allow-Origin', value: '*' },
+          { key: 'Access-Control-Allow-Methods', value: 'GET, POST, PUT, DELETE, OPTIONS' },
+          { key: 'Access-Control-Allow-Headers', value: 'Content-Type, Authorization' }
+        ]
+      }
     ];
   },
   
@@ -26,21 +32,6 @@ const nextConfig: NextConfig = {
             key: 'X-Frame-Options',
             value: 'ALLOWALL'
           }
-        ]
-      }
-    ];
-  },
-  
-  // Enable CORS for API routes and assets
-  async rewrites() {
-    return [
-      {
-        source: '/api/:path*',
-        destination: 'http://db.connie.technology:3000/:path*',
-        headers: [
-          { key: 'Access-Control-Allow-Origin', value: '*' },
-          { key: 'Access-Control-Allow-Methods', value: 'GET, POST, PUT, DELETE, OPTIONS' },
-          { key: 'Access-Control-Allow-Headers', value: 'Content-Type, Authorization' }
         ]
       }
     ];
