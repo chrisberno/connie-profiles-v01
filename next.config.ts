@@ -21,7 +21,7 @@ const nextConfig: NextConfig = {
           {
             // Modern approach using Content-Security-Policy frame-ancestors
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://db.connie.technology:3000 localhost:* wss://localhost:*; frame-ancestors 'self' https://flex.twilio.com https://*.twilio.com https://connie.team https://*.connie.team http://localhost:* https://localhost:*"
+            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://db.connie.technology:3000 localhost:* wss://localhost:*; frame-ancestors *"
           },
           {
             // Legacy approach for older browsers
