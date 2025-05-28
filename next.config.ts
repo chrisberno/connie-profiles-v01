@@ -13,7 +13,7 @@ const nextConfig = {
           },
           {
             key: 'Content-Security-Policy',
-            value: 'frame-ancestors *'
+            value: "frame-ancestors 'self' https://flex.twilio.com https://connie.team https://dev.connie.team"
           }
         ]
       }
