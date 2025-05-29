@@ -1,73 +1,56 @@
+const axios = require('axios');
+
 exports.handler = async (context, event, callback) => {
-  // Create a Twilio Response object
-  const response = new Twilio.Response();
-  
-  // Set comprehensive CORS headers
-  response.appendHeader('Access-Control-Allow-Origin', '*');  // Or specifically 'https://flex.twilio.com'
-  response.appendHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  response.appendHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  response.appendHeader('Access-Control-Max-Age', '3600');
-  response.appendHeader('Content-Type', 'application/json');
-  
-  // Handle preflight OPTIONS request
-  if (event.request && event.request.method === 'OPTIONS') {
-    console.log('Handling OPTIONS preflight request');
-    response.setStatusCode(200);
-    return callback(null, response);
-  }
-  
   try {
-    const phoneNumber = event.From ? event.From.replace(/[^+\d]/g, '') : null;
-    console.log('Processing request for phone number:', phoneNumber);
+    console.log('Incoming request with phone:', event.From);
     
-    if (!phoneNumber) {
-      response.setBody({ 
-        found: false, 
-        url: 'https://connie-profiles-v01.vercel.app/search' 
-      });
-      return callback(null, response);
-    }
+    const axiosResponse = await axios.get('http://db.connie.technology:3000/all-profiles');
+    const profiles = axiosResponse.data.profiles;
+    const phoneNumber = event.From;
+    const profile = profiles.find(p => p.phone === phoneNumber);
+
+    // Create a response object that Flex expects
+    const responseObject = {
+      success: true
+    };
     
-    // Query your database directly here
-    const mysql = require('mysql2/promise');
-    const connection = await mysql.createConnection({
-      host: context.DB_HOST,
-      user: context.DB_USER,
-      password: context.DB_PASSWORD,
-      database: context.DB_NAME,
-      port: context.DB_PORT || 3306,
-    });
+    // Add a timestamp parameter to force a fresh load and prevent caching issues
+    const timestamp = new Date().getTime();
     
-    const [rows] = await connection.execute(
-      'SELECT * FROM profiles WHERE phone = ?',
-      [phoneNumber]
-    );
-    await connection.end();
-    
-    const BASE_URL = 'https://connie-profiles-v01.vercel.app';
-    
-    if (rows.length > 0) {
-      const profileId = rows[0].id;
-      response.setBody({ 
-        found: true, 
-        url: `${BASE_URL}/profile/${profileId}`,
-        profile: rows[0]
-      });
+    if (profile) {
+      console.log('Profile found:', profile.id);
+      // Add a special parameter to indicate this is coming from Flex
+      responseObject.crm_url = `https://connie-profiles-v01.vercel.app/profile/${profile.id}?source=flex&t=${timestamp}`;
     } else {
-      response.setBody({ 
-        found: false, 
-        url: `${BASE_URL}/search` 
-      });
+      console.log('No profile found, using search page');
+      responseObject.crm_url = `https://connie-profiles-v01.vercel.app/search?source=flex&t=${timestamp}`;
     }
     
-    return callback(null, response);
+    // Return proper CORS headers for Flex
+    const twilioResponse = new Twilio.Response();
+    twilioResponse.appendHeader('Access-Control-Allow-Origin', '*');
+    twilioResponse.appendHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
+    twilioResponse.appendHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
+    twilioResponse.appendHeader('Content-Type', 'application/json');
+    twilioResponse.setBody(responseObject);
+    
+    return callback(null, twilioResponse);
   } catch (error) {
-    console.error('Proxy error:', error);
-    response.setStatusCode(500);
-    response.setBody({ 
-      error: 'Internal server error', 
-      url: 'https://connie-profiles-v01.vercel.app/search' 
+    console.error('API error:', error.message);
+    
+    // Return error with proper CORS headers
+    const twilioResponse = new Twilio.Response();
+    twilioResponse.appendHeader('Access-Control-Allow-Origin', '*');
+    twilioResponse.appendHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
+    twilioResponse.appendHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
+    twilioResponse.appendHeader('Content-Type', 'application/json');
+    twilioResponse.setStatusCode(500);
+    twilioResponse.setBody({ 
+      success: false, 
+      error: error.message,
+      crm_url: `https://connie-profiles-v01.vercel.app/header-test?error=true&t=${new Date().getTime()}`
     });
-    return callback(null, response);
+    
+    return callback(null, twilioResponse);
   }
 };

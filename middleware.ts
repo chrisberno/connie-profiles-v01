@@ -5,7 +5,11 @@ export function middleware(request: NextRequest) {
   // Get the response
   const response = NextResponse.next();
   
-  // Add headers to allow embedding in Flex
+  // Check if this request is coming from Flex
+  const url = new URL(request.url);
+  const isFromFlex = url.searchParams.get('source') === 'flex';
+  
+  // Always add these headers, but especially important for Flex requests
   response.headers.set('X-Frame-Options', 'ALLOW-FROM https://flex.twilio.com');
   response.headers.set('Content-Security-Policy', 
     "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; " +
@@ -17,7 +21,7 @@ export function middleware(request: NextRequest) {
     return new NextResponse(null, {
       status: 204,
       headers: {
-        'Access-Control-Allow-Origin': 'https://flex.twilio.com',
+        'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type, Authorization',
         'Access-Control-Max-Age': '86400',
