@@ -9,7 +9,7 @@
         },
         {
           "key": "X-Frame-Options",
-          "value": "ALLOWALL"
+          "value": "ALLOW-FROM https://flex.twilio.com"
         },
         {
           "key": "Access-Control-Allow-Origin",
